@@ -1,0 +1,65 @@
+body {
+    background-color: #e1f5fe; /* Fondo celeste suave */
+    font-family: 'Poppins', sans-serif;
+}
+.hero {
+    background: url('https://source.unsplash.com/1600x600/?pharmacy,medicine') no-repeat center center/cover;
+    color: white;
+    padding: 100px 0;
+    text-align: center;
+    background-size: cover;
+}
+.hero h1 {
+    font-size: 3.5rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: black; /* Aquí se cambia el color del texto a negro */
+}
+.hero p {
+    font-size: 1.25rem;
+    font-weight: 300;
+}
+.section {
+    padding: 60px 0;
+}
+.btn-outline-primary {
+    color: #00bcd4;
+    border-color: #00bcd4;
+}
+.btn-outline-primary:hover {
+    background-color: #00bcd4;
+    color: white;
+}
+.btn-primary {
+    background-color: #00bcd4;
+    border-color: #00bcd4;
+}
+.btn-primary:hover {
+    background-color: #00a4b3;
+    border-color: #00a4b3;
+}
+footer {
+    background-color: #00bcd4;
+    color: white;
+}
+footer p {
+    margin: 0;
+    color: white; /* Asegura que el texto en el pie de página sea blanco */
+}
+.logo {
+    width: 150px; /* Aumenta el tamaño del logo */
+    height: auto; /* Ajusta la altura automáticamente para mantener las proporciones */
+}
+.nav-link {
+    color: #00bcd4 !important;
+}
+.nav-link:hover {
+    color: #008c9e !important;
+}
+h2 {
+    font-weight: 600;
+    color: black;
+}
+p {
+    color: black;
+}
