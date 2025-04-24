@@ -14,5 +14,18 @@ class Producto extends Model
         'descripcion',
         'precio',
         'cantidad',
+        'categoria_id', // este campo es necesario para la relación con Categoría
     ];
+
+    public function ordenes()
+    {
+        return $this->belongsToMany(Orden::class)
+                    ->withPivot('cantidad')
+                    ->withTimestamps();
+    }
+
+    public function categoria()
+    {
+        return $this->belongsTo(Categoria::class);
+    }
 }

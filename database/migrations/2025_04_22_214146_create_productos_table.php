@@ -17,6 +17,9 @@ return new class extends Migration
             $table->text('descripcion'); // Descripción del producto
             $table->decimal('precio', 8, 2); // Precio del producto con 2 decimales
             $table->integer('cantidad'); // Cantidad disponible del producto
+
+            // Relación con categoría
+            $table->foreignId('categoria_id')->constrained()->onDelete('cascade');
             $table->timestamps(); // Fechas de creación y actualización
         });
     }
