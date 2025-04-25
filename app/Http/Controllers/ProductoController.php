@@ -3,72 +3,62 @@
 namespace App\Http\Controllers;
 
 use App\Models\Producto;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\StoreProductoRequest;
+use App\Http\Requests\UpdateProductoRequest;
 
 class ProductoController extends Controller
 {
-    // Mostrar todos los productos (empleado)
+    // Mostrar todos los productos para empleados
     public function index()
     {
+        $this->authorize('viewAny', Producto::class);
+
         $productos = Producto::all();
         return view('empleado', compact('productos'));
     }
 
-    // Mostrar el panel del cliente con productos
+    // Mostrar productos al cliente
     public function clienteIndex()
     {
+        $this->authorize('viewAny', Producto::class);
+
         $productos = Producto::all();
         return view('cliente', compact('productos'));
     }
 
-    // Mostrar el formulario para crear un nuevo producto
+    // Formulario para crear un nuevo producto
     public function create()
     {
+        $this->authorize('create', Producto::class);
+
         return view('create_producto');
     }
 
-    // Guardar un nuevo producto
-    public function store(Request $request)
+    // Guardar nuevo producto
+    public function store(StoreProductoRequest $request)
     {
-        $request->validate([
-            'nombre' => 'required|string|max:255',
-            'descripcion' => 'required|string|max:1000',
-            'precio' => 'required|numeric',
-            'cantidad' => 'required|integer',
-        ]);
+        $this->authorize('create', Producto::class);
 
-        Producto::create([
-            'nombre' => $request->nombre,
-            'descripcion' => $request->descripcion,
-            'precio' => $request->precio,
-            'cantidad' => $request->cantidad,
-        ]);
+        Producto::create($request->validated());
 
         return redirect()->route('productos.index')->with('success', 'Producto creado exitosamente.');
     }
 
-    // Mostrar el formulario para editar un producto
+    // Formulario para editar un producto
     public function edit(Producto $producto)
     {
+        $this->authorize('update', $producto);
+
         return view('edit_producto', compact('producto'));
     }
 
     // Actualizar un producto
-    public function update(Request $request, Producto $producto)
+    public function update(UpdateProductoRequest $request, Producto $producto)
     {
-        $request->validate([
-            'nombre' => 'required|string|max:255',
-            'descripcion' => 'required|string|max:1000',
-            'precio' => 'required|numeric',
-            'cantidad' => 'required|integer',
-        ]);
+        $this->authorize('update', $producto);
 
-        $producto->update([
-            'nombre' => $request->nombre,
-            'descripcion' => $request->descripcion,
-            'precio' => $request->precio,
-            'cantidad' => $request->cantidad,
-        ]);
+        $producto->update($request->validated());
 
         return redirect()->route('productos.index')->with('success', 'Producto actualizado exitosamente.');
     }
@@ -76,6 +66,8 @@ class ProductoController extends Controller
     // Eliminar un producto
     public function destroy(Producto $producto)
     {
+        $this->authorize('delete', $producto);
+
         $producto->delete();
 
         return redirect()->route('productos.index')->with('success', 'Producto eliminado exitosamente.');

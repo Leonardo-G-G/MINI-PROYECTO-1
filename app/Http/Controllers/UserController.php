@@ -3,43 +3,58 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
-use App\Models\User;
 use Illuminate\Support\Facades\Hash;
-
+use App\Models\User;
+use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserRequest;
 
 class UserController extends Controller
 {
     // Mostrar el dashboard según el rol del usuario
     public function dashboard()
-{
-    $users = User::all(); // Cargar todos los usuarios para la vista del gerente
-    return view('gerente', compact('users'));
-}
+    {
+        $user = Auth::user();
 
+        if ($user->role === 'gerente') {
+            $users = User::all();
+            return view('gerente', compact('users'));
+        }
+
+        if ($user->role === 'administrador') {
+            $users = User::all();
+            return view('administrador', compact('users'));
+        }
+
+        if ($user->role === 'cliente') {
+            return view('cliente');
+        }
+
+        return redirect()->route('login')->with('error', 'Rol no autorizado.');
+    }
 
     // Mostrar todos los usuarios
     public function index()
     {
-        $users = User::all(); // Usa paginación si prefieres ->paginate(10);
+        $this->authorize('viewAny', User::class);
+
+        $users = User::all();
         return view('gerente', compact('users'));
     }
 
     // Mostrar formulario para crear un nuevo usuario
     public function create()
     {
+        $this->authorize('create', User::class);
+
         return view('create');
     }
 
     // Guardar un nuevo usuario
-    public function store(Request $request)
+    public function store(StoreUserRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|string|in:gerente,empleado,cliente',
-        ]);
+        $this->authorize('create', User::class);
+
+        $validated = $request->validated();
 
         User::create([
             'name' => $validated['name'],
@@ -54,18 +69,17 @@ class UserController extends Controller
     // Mostrar formulario para editar un usuario
     public function edit(User $user)
     {
+        $this->authorize('update', $user);
+
         return view('edit', compact('user'));
     }
 
     // Actualizar un usuario
-    public function update(Request $request, User $user)
+    public function update(UpdateUserRequest $request, User $user)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'password' => 'nullable|string|min:8|confirmed',
-            'role' => 'required|string|in:gerente,empleado,cliente',
-        ]);
+        $this->authorize('update', $user);
+
+        $validated = $request->validated();
 
         $user->update([
             'name' => $validated['name'],
@@ -80,6 +94,8 @@ class UserController extends Controller
     // Eliminar un usuario
     public function destroy(User $user)
     {
+        $this->authorize('delete', $user);
+
         $user->delete();
         return redirect()->route('gerente.usuarios.index')->with('success', 'Usuario eliminado con éxito.');
     }
