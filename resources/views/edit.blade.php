@@ -9,7 +9,7 @@
 <body>
     <div class="container">
         <h1>Editar Usuario: {{ $user->name }}</h1>
-        <form action="{{ route('gerente.usuarios.update', $user->id) }}" method="POST">
+        <form action="{{ route('admin.usuarios.update', $user->id) }}" method="POST">
             @csrf
             @method('PUT')
             
@@ -28,13 +28,13 @@
             <label for="role">Rol:</label>
             <select name="role" id="role">
                 <option value="gerente" {{ $user->role == 'gerente' ? 'selected' : '' }}>Gerente</option>
-                <option value="empleado" {{ $user->role == 'empleado' ? 'selected' : '' }}>Empleado</option>
+                <option value="administrador" {{ $user->role == 'administrador' ? 'selected' : '' }}>Administrador</option>
                 <option value="cliente" {{ $user->role == 'cliente' ? 'selected' : '' }}>Cliente</option>
             </select>
 
             <button type="submit">Actualizar Usuario</button>
         </form>
-        <a href="{{ route('gerente.usuarios.index') }}">Volver</a>
+        <a href="{{ route('admin.usuarios.index') }}">Volver</a>
     </div>
 </body>
 </html>

@@ -4,58 +4,57 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editar Producto</title>
-
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="{{ asset('css/style.css') }}" rel="stylesheet">
 </head>
 <body>
-    <header class="navbar navbar-dark bg-dark px-4 shadow">
-        <a class="navbar-brand" href="#">Dashboard Empleado</a>
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit" class="btn btn-danger">
-                <i class="fas fa-sign-out-alt"></i> Cerrar sesión
-            </button>
-        </form>
-    </header>
-
-    <main class="container mt-5">
-        <h2>Editar Producto</h2>
-
-        @if ($errors->any())
-            <div class="alert alert-danger">
-                <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
-        <form action="{{ route('productos.update', $producto->id) }}" method="POST">
+    <div class="container">
+        <h1>Editar Producto: {{ $producto->nombre }}</h1>
+        <form action="{{ route('admin.productos.update', $producto->id) }}" method="POST">
             @csrf
             @method('PUT')
-            <div class="mb-3">
-                <label for="nombre" class="form-label">Nombre</label>
-                <input type="text" class="form-control" id="nombre" name="nombre" value="{{ old('nombre', $producto->nombre) }}" required>
-            </div>
-            <div class="mb-3">
-                <label for="descripcion" class="form-label">Descripción</label>
-                <textarea class="form-control" id="descripcion" name="descripcion" required>{{ old('descripcion', $producto->descripcion) }}</textarea>
-            </div>
-            <div class="mb-3">
-                <label for="precio" class="form-label">Precio</label>
-                <input type="number" step="0.01" class="form-control" id="precio" name="precio" value="{{ old('precio', $producto->precio) }}" required>
-            </div>
-            <div class="mb-3">
-                <label for="cantidad" class="form-label">Cantidad</label>
-                <input type="number" class="form-control" id="cantidad" name="cantidad" value="{{ old('cantidad', $producto->cantidad) }}" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Actualizar Producto</button>
-        </form>
+            
+            <label for="nombre">Nombre:</label>
+            <input type="text" name="nombre" id="nombre" value="{{ $producto->nombre }}" required>
 
-        <a href="{{ route('productos.index') }}" class="btn btn-secondary mt-3">Volver</a>
-    </main>
+            <label for="precio">Precio:</label>
+            <input type="number" name="precio" id="precio" value="{{ $producto->precio }}" required>
+
+            <!-- Descripción del Producto con estilo personalizado -->
+            <div class="mb-4">
+                <label for="descripcion" class="form-label fs-5">Descripción:</label>
+                <textarea name="descripcion" id="descripcion" rows="6" class="form-control" placeholder="Escribe una breve descripción del producto"
+                    style="
+                        resize: none; 
+                        min-height: 150px; 
+                        width: 100%; 
+                        max-width: 600px; 
+                        border-radius: 8px; 
+                        border: 1px solid #ced4da; 
+                        background-color: #f8f9fa;
+                        padding: 12px; 
+                        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+                        margin: 0 auto;
+                    " 
+                    onfocus="this.style.boxShadow='0 2px 10px rgba(0, 123, 255, 0.3)'; this.style.borderColor='#007bff'" 
+                    onblur="this.style.boxShadow='0 2px 5px rgba(0, 0, 0, 0.1)'; this.style.borderColor='#ced4da'">{{ old('descripcion', $producto->descripcion) }}</textarea>
+            </div>
+
+            <label for="cantidad">Cantidad:</label>
+            <input type="number" name="cantidad" id="cantidad" value="{{ $producto->cantidad }}" required min="1">
+
+            <label for="categoria_id">Categoría:</label>
+            <select name="categoria_id" id="categoria_id" required>
+                @foreach($categorias as $categoria)
+                    <option value="{{ $categoria->id }}" {{ $producto->categoria_id == $categoria->id ? 'selected' : '' }}>
+                        {{ $categoria->nombre }}
+                    </option>
+                @endforeach
+            </select>
+
+            <button type="submit">Actualizar Producto</button>
+        </form>
+        <a href="{{ route('admin.productos.index') }}">Volver</a>
+    </div>
 </body>
 </html>

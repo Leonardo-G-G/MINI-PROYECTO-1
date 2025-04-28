@@ -9,7 +9,7 @@
 <body>
     <div class="container">
         <h1>Crear Nuevo Usuario</h1>
-        <form action="{{ route('gerente.usuarios.store') }}" method="POST">
+        <form action="{{ route('admin.usuarios.store') }}" method="POST">
             @csrf
             <label for="name">Nombre:</label>
             <input type="text" name="name" id="name" required>
@@ -26,13 +26,13 @@
             <label for="role">Rol:</label>
             <select name="role" id="role">
                 <option value="gerente">Gerente</option>
-                <option value="empleado">Empleado</option>
+                <option value="administrador">Administrador</option>
                 <option value="cliente">Cliente</option>
             </select>
 
             <button type="submit">Crear Usuario</button>
         </form>
-        <a href="{{ route('gerente.usuarios.index') }}">Volver</a>
+        <a href="{{ route('admin.usuarios.index') }}">Volver</a>
     </div>
 </body>
 </html>
