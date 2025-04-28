@@ -10,7 +10,7 @@ class ProductoPolicy
 {
     public function viewAny(User $user): bool
     {
-        return in_array($user->rol, ['administrador', 'gerente', 'cliente']);
+        return in_array($user->role, ['administrador', 'gerente', 'cliente']);
     }
 
     public function view(User $user, Producto $producto): bool
@@ -20,16 +20,16 @@ class ProductoPolicy
 
     public function create(User $user): bool
     {
-        return $user->rol === 'administrador';
+        return $user->role === 'administrador';
     }
 
     public function update(User $user, Producto $producto): bool
     {
-        return in_array($user->rol, ['administrador', 'gerente']);
+        return in_array($user->role, ['administrador', 'gerente']);
     }
 
     public function delete(User $user, Producto $producto): bool
     {
-        return $user->rol === 'administrador';
+        return $user->role === 'administrador';
     }
 }

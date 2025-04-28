@@ -11,7 +11,7 @@ class CategoriaPolicy
     // Todos pueden ver categorías
     public function viewAny(User $user): bool
     {
-        return in_array($user->rol, ['administrador', 'gerente', 'cliente']);
+        return in_array($user->role, ['administrador', 'gerente', 'cliente']);
     }
 
     public function view(User $user, Categoria $categoria): bool
@@ -22,19 +22,19 @@ class CategoriaPolicy
     // Solo el administrador puede crear
     public function create(User $user): bool
     {
-        return $user->rol === 'administrador';
+        return $user->role === 'administrador';
     }
 
     // Admin y gerente pueden editar
     public function update(User $user, Categoria $categoria): bool
     {
-        return in_array($user->rol, ['administrador', 'gerente']);
+        return in_array($user->role, ['administrador', 'gerente']);
     }
 
     // Solo el administrador puede eliminar
     public function delete(User $user, Categoria $categoria): bool
     {
-        return $user->rol === 'administrador';
+        return $user->role === 'administrador';
     }
 
     public function restore(User $user, Categoria $categoria): bool
