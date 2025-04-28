@@ -2,103 +2,61 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use App\Models\Orden;
 use App\Models\Producto;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Requests\StoreOrdenRequest;
-use App\Http\Requests\UpdateOrdenRequest;
 
 class OrdenController extends Controller
 {
-    // Mostrar todas las órdenes
+    // Mostrar todas las órdenes del cliente
     public function index()
     {
-        $this->authorize('viewAny', Orden::class);
-
-        $ordenes = Orden::with('user', 'productos')->get();
-        return view('ordenes.index', compact('ordenes'));
+        $ordenes = Orden::where('user_id', Auth::id())->with('productos')->get();
+        return view('mis_ordenes', compact('ordenes'));
     }
 
-    // Mostrar formulario para crear una nueva orden
-    public function create()
-    {
-        $this->authorize('create', Orden::class);
-
-        $productos = Producto::all();
-        return view('ordenes.create', compact('productos'));
-    }
+    // Mostrar formulario para crear nueva orden (ya lo haces en dashboard, así que no necesitamos create())
 
     // Guardar una nueva orden
-    public function store(StoreOrdenRequest $request)
+    public function store(Request $request)
     {
-        $this->authorize('create', Orden::class);
+        $productosSeleccionados = [];
 
+        foreach ($request->productos as $producto) {
+            if (isset($producto['id'])) {
+                $productosSeleccionados[] = $producto;
+            }
+        }
+
+        if (empty($productosSeleccionados)) {
+            return back()->with('error', 'Debes seleccionar al menos un producto.');
+        }
+
+        // Crear la orden
         $orden = Orden::create([
             'user_id' => Auth::id(),
             'fecha' => now(),
-            'total' => 0, // Se calculará después
+            'total' => 0, // Temporal, se actualizará
         ]);
 
         $total = 0;
-        foreach ($request->productos as $producto) {
-            $orden->productos()->attach($producto['id'], ['cantidad' => $producto['cantidad']]);
+        foreach ($productosSeleccionados as $producto) {
             $productoModel = Producto::findOrFail($producto['id']);
+            $orden->productos()->attach($productoModel->id, ['cantidad' => $producto['cantidad']]);
             $total += $productoModel->precio * $producto['cantidad'];
         }
 
+        // Actualizar el total de la orden
         $orden->update(['total' => $total]);
 
-        return redirect()->route('ordenes.index')->with('success', 'Orden creada exitosamente.');
+        return redirect()->route('cliente.ordenes.index')->with('success', 'Orden creada exitosamente.');
     }
 
-    // Mostrar una orden específica
-    public function show(Orden $orden)
+    // Mostrar una orden específica si quieres (opcional)
+    public function show($id)
     {
-        $this->authorize('view', $orden);
-
-        $orden->load('productos', 'user');
-        return view('ordenes.show', compact('orden'));
-    }
-
-    // Mostrar formulario para editar una orden
-    public function edit(Orden $orden)
-    {
-        $this->authorize('update', $orden);
-
-        $productos = Producto::all();
-        $orden->load('productos');
-        return view('ordenes.edit', compact('orden', 'productos'));
-    }
-
-    // Actualizar una orden
-    public function update(UpdateOrdenRequest $request, Orden $orden)
-    {
-        $this->authorize('update', $orden);
-
-        $orden->productos()->detach();
-
-        $total = 0;
-        foreach ($request->productos as $producto) {
-            $orden->productos()->attach($producto['id'], ['cantidad' => $producto['cantidad']]);
-            $productoModel = Producto::findOrFail($producto['id']);
-            $total += $productoModel->precio * $producto['cantidad'];
-        }
-
-        $orden->update([
-            'total' => $total,
-        ]);
-
-        return redirect()->route('ordenes.index')->with('success', 'Orden actualizada exitosamente.');
-    }
-
-    // Eliminar una orden
-    public function destroy(Orden $orden)
-    {
-        $this->authorize('delete', $orden);
-
-        $orden->productos()->detach();
-        $orden->delete();
-
-        return redirect()->route('ordenes.index')->with('success', 'Orden eliminada exitosamente.');
+        $orden = Orden::where('id', $id)->where('user_id', Auth::id())->with('productos')->firstOrFail();
+        return view('show', compact('orden'));
     }
 }

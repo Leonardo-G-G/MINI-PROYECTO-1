@@ -5,17 +5,21 @@ namespace App\Http\Controllers;
 use App\Models\Categoria;
 use App\Http\Requests\StoreCategoriaRequest;
 use App\Http\Requests\UpdateCategoriaRequest;
-use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class CategoriaController extends Controller
 {
+    use AuthorizesRequests;
+
     /**
      * Mostrar todas las categorías.
      */
     public function index()
     {
+        $this->authorize('viewAny', Categoria::class);
+
         $categorias = Categoria::all();
-        return view('categorias.index', compact('categorias'));
+        return view('index_categoria', compact('categorias'));
     }
 
     /**
@@ -23,7 +27,9 @@ class CategoriaController extends Controller
      */
     public function create()
     {
-        return view('categorias.create');
+        $this->authorize('create', Categoria::class);
+
+        return view('create_categoria');
     }
 
     /**
@@ -31,11 +37,11 @@ class CategoriaController extends Controller
      */
     public function store(StoreCategoriaRequest $request)
     {
-        // Crear la categoría con las validaciones del request
+        $this->authorize('create', Categoria::class);
+
         Categoria::create($request->validated());
 
-        // Redirigir con un mensaje de éxito
-        return redirect()->route('categorias.index')->with('success', 'Categoría creada exitosamente.');
+        return redirect()->route('admin.categorias.index')->with('success', 'Categoría creada exitosamente.');
     }
 
     /**
@@ -43,7 +49,9 @@ class CategoriaController extends Controller
      */
     public function edit(Categoria $categoria)
     {
-        return view('categorias.edit', compact('categoria'));
+        $this->authorize('update', $categoria);
+
+        return view('edit_categoria', compact('categoria'));
     }
 
     /**
@@ -51,11 +59,12 @@ class CategoriaController extends Controller
      */
     public function update(UpdateCategoriaRequest $request, Categoria $categoria)
     {
-        // Actualizar la categoría con las validaciones del request
+        $this->authorize('update', $categoria);
+
+        // Actualizamos los datos de la categoría con los datos validados
         $categoria->update($request->validated());
 
-        // Redirigir con un mensaje de éxito
-        return redirect()->route('categorias.index')->with('success', 'Categoría actualizada exitosamente.');
+        return redirect()->route('admin.categorias.index')->with('success', 'Categoría actualizada exitosamente.');
     }
 
     /**
@@ -63,10 +72,10 @@ class CategoriaController extends Controller
      */
     public function destroy(Categoria $categoria)
     {
-        // Eliminar la categoría
+        $this->authorize('delete', $categoria);
+
         $categoria->delete();
 
-        // Redirigir con un mensaje de éxito
-        return redirect()->route('categorias.index')->with('success', 'Categoría eliminada exitosamente.');
+        return redirect()->route('admin.categorias.index')->with('success', 'Categoría eliminada exitosamente.');
     }
 }
