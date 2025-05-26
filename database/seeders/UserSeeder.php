@@ -1,42 +1,44 @@
 <?php
 
 namespace Database\Seeders;
-
-use Illuminate\Database\Seeder;
-use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use App\Models\User;
+use Illuminate\Database\Seeder;
+
+
 
 class UserSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
-    public function run(): void
+       public function run(): void
     {
-        // Administrador
+        // Crear usuario administrador
         User::create([
-            'name' => 'Admin',
-            'email' => 'admin@gmail.com',
-            'password' => Hash::make('admin123'),
+            'name' => 'Admin Principal',
+            'email' => 'admin@ejemplo.com',
+            'password' => Hash::make('admin1234'),
             'role' => 'administrador',
+            'tipo_cliente' => null,
         ]);
 
-        // Gerente
+        // Crear usuario gerente
         User::create([
-            'name' => 'Gerente1',
-            'email' => 'gerente@gmail.com',
-            'password' => Hash::make('gerente123'),
+            'name' => 'Gerente General',
+            'email' => 'gerente@ejemplo.com',
+            'password' => Hash::make('gerente1234'),
             'role' => 'gerente',
+            'tipo_cliente' => null,
         ]);
 
-        // Cliente
-        User::create([
-            'name' => 'Cliente1',
-            'email' => 'cliente@gmail.com',
-            'password' => Hash::make('cliente123'),
+        // Crear 70 compradores
+        User::factory()->count(70)->create([
             'role' => 'cliente',
+            'tipo_cliente' => 'comprador',
         ]);
 
-        
+        // Crear 30 vendedores
+        User::factory()->count(30)->create([
+            'role' => 'cliente',
+            'tipo_cliente' => 'vendedor',
+        ]);
     }
 }
