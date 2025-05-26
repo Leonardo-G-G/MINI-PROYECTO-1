@@ -49,6 +49,15 @@
                 <input id="password_confirmation" type="password" name="password_confirmation" required minlength="8" placeholder="Confirmar Contraseña">
             </div>
 
+            <div class="input-group">
+                <i class="fa-solid fa-user-tag"></i>
+                <select name="tipo_cliente" required>
+                    <option value="">Selecciona un tipo de cliente </option>
+                    <option value="comprador" {{ old('tipo_cliente') == 'comprador' ? 'selected' : '' }}>Comprador</option>
+                    <option value="vendedor" {{ old('tipo_cliente') == 'vendedor' ? 'selected' : '' }}>Vendedor</option>
+                </select>
+            </div>
+
             <button type="submit"><i class="fa-solid fa-user-check"></i> Registrarse</button>
         </form>
 
