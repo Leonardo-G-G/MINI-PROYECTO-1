@@ -12,20 +12,33 @@ class Producto extends Model
     protected $fillable = [
         'nombre',
         'descripcion',
+        'autor',
+        'editorial',
+        'numero_paginas',
+        'estado',
         'precio',
         'cantidad',
-        'categoria_id', // este campo es necesario para la relación con Categoría
+        'foto',
+        'anio_publicacion',
+        'categoria_id',
+        'vendedor_id',
     ];
-
-    public function ordenes()
-    {
-        return $this->belongsToMany(Orden::class)
-                    ->withPivot('cantidad')
-                    ->withTimestamps();
-    }
 
     public function categoria()
     {
         return $this->belongsTo(Categoria::class);
     }
+
+    public function vendedor()
+    {
+        return $this->belongsTo(User::class, 'vendedor_id');
+    }
+
+    public function ventas()
+{
+    return $this->belongsToMany(Venta::class, 'producto_venta')
+                ->withPivot('cantidad', 'precio_unitario')
+                ->withTimestamps();
+}
+
 }
