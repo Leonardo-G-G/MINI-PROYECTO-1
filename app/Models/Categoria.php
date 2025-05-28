@@ -11,8 +11,11 @@ class Categoria extends Model
 
     protected $fillable = ['nombre', 'descripcion'];
 
+    /**
+     * Relación muchos a muchos con productos.
+     */
     public function productos()
     {
-        return $this->hasMany(Producto::class);
+        return $this->belongsToMany(Producto::class, 'categoria_producto')->withTimestamps();
     }
 }

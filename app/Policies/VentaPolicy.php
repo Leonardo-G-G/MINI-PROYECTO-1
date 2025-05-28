@@ -18,14 +18,29 @@ class VentaPolicy
     /**
      * Ver una venta específica:
      * - El comprador (user_id)
-     * - El vendedor del producto (producto->vendedor_id)
+     * - Cualquier vendedor involucrado en los productos vendidos
      * - Gerente o Administrador
      */
     public function view(User $user, Venta $venta): bool
     {
-        return $user->id === $venta->user_id
-            || $user->id === $venta->producto->vendedor_id
-            || in_array($user->role, ['gerente', 'administrador']);
+        // Si es comprador
+        if ($user->id === $venta->user_id) {
+            return true;
+        }
+
+        // Si es gerente o admin
+        if (in_array($user->role, ['gerente', 'administrador'])) {
+            return true;
+        }
+
+        // Si es vendedor de al menos uno de los productos
+        foreach ($venta->productos as $producto) {
+            if ($producto->vendedor_id === $user->id) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -45,7 +60,7 @@ class VentaPolicy
     }
 
     /**
-     * Actualizar una venta (si se necesita) - ejemplo: gerente.
+     * Actualizar una venta - solo gerente.
      */
     public function update(User $user, Venta $venta): bool
     {

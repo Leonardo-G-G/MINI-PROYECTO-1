@@ -20,13 +20,16 @@ class Producto extends Model
         'cantidad',
         'foto',
         'anio_publicacion',
-        'categoria_id',
         'vendedor_id',
+        
     ];
 
-    public function categoria()
+    /**
+     * Relación muchos a muchos con categorías.
+     */
+    public function categorias()
     {
-        return $this->belongsTo(Categoria::class);
+        return $this->belongsToMany(Categoria::class, 'categoria_producto')->withTimestamps();
     }
 
     public function vendedor()
@@ -35,10 +38,9 @@ class Producto extends Model
     }
 
     public function ventas()
-{
-    return $this->belongsToMany(Venta::class, 'producto_venta')
-                ->withPivot('cantidad', 'precio_unitario')
-                ->withTimestamps();
-}
-
+    {
+        return $this->belongsToMany(Venta::class, 'producto_venta')
+                    ->withPivot('cantidad', 'precio_unitario')
+                    ->withTimestamps();
+    }
 }
