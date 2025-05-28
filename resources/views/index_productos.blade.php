@@ -39,11 +39,15 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('admin.productos.index') }}" class="nav-link">
+                    <a href="{{ route('admin.productos.index') }}" class="nav-link active">
                         <i class="fas fa-boxes"></i> Productos
                     </a>
                 </li>
-                
+                <li class="nav-item">
+                    <a href="{{ route('admin.estadisticas') }}" class="nav-link">
+                        <i class="fas fa-chart-bar"></i> Estadísticas
+                    </a>
+                </li>
             </ul>
         </div>
 
@@ -66,14 +70,22 @@
             @endif
 
             <div class="table-responsive">
-                <table class="table table-bordered table-striped">
+                <table class="table table-bordered table-striped align-middle">
                     <thead class="table-light">
                         <tr>
                             <th>ID</th>
                             <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th>Autor</th>
+                            <th>Editorial</th>
+                            <th>Páginas</th>
+                            <th>Año</th>
+                            <th>Estado</th>
                             <th>Precio</th>
                             <th>Cantidad</th>
-                            <th>Categoría</th>
+                            <th>Categorías</th>
+                            <th>Vendedor</th>
+                            <th>Imagen</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -82,25 +94,45 @@
                             <tr>
                                 <td>{{ $producto->id }}</td>
                                 <td>{{ $producto->nombre }}</td>
-                                <td>${{ $producto->precio }}</td>
+                                <td>{{ Str::limit($producto->descripcion, 40) }}</td>
+                                <td>{{ $producto->autor }}</td>
+                                <td>{{ $producto->editorial }}</td>
+                                <td>{{ $producto->numero_paginas }}</td>
+                                <td>{{ $producto->anio_publicacion }}</td>
+                                <td>{{ ucfirst($producto->estado) }}</td>
+                                <td>${{ number_format($producto->precio, 2) }}</td>
                                 <td>{{ $producto->cantidad }}</td>
-                                <td>{{ $producto->categoria->nombre }}</td>
                                 <td>
-                                    <a href="{{ route('admin.productos.edit', $producto->id) }}" class="btn btn-warning btn-sm">
+                                    @forelse ($producto->categorias as $categoria)
+                                        <span class="badge bg-secondary">{{ $categoria->nombre }}</span>
+                                    @empty
+                                        <span class="text-muted">Sin categoría</span>
+                                    @endforelse
+                                </td>
+                                <td>{{ $producto->vendedor?->name ?? 'N/A' }}</td>
+                                <td>
+                                    @if($producto->foto)
+                                        <img src="{{ asset('storage/' . $producto->foto) }}" alt="Foto" width="50" height="60" style="object-fit:cover;">
+                                    @else
+                                        <span class="text-muted">Sin imagen</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <a href="{{ route('admin.productos.edit', $producto->id) }}" class="btn btn-warning btn-sm mb-1">
                                         <i class="fas fa-edit"></i> Editar
                                     </a>
                                     <form action="{{ route('admin.productos.destroy', $producto->id) }}" method="POST" style="display:inline;">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro?')">
-                                            <i class="fas fa-trash"></i> Eliminar
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de eliminar este producto?')">
+                                            <i class="fas fa-trash-alt"></i> Eliminar
                                         </button>
                                     </form>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6">No hay productos registrados.</td>
+                                <td colspan="14" class="text-center text-muted">No hay productos registrados.</td>
                             </tr>
                         @endforelse
                     </tbody>

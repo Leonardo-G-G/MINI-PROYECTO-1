@@ -34,7 +34,7 @@
             </div>
             <ul class="nav flex-column">
                 <li class="nav-item">
-                    <a href="{{ route('admin.usuarios.index') }}" class="nav-link">
+                    <a href="{{ route('admin.usuarios.index') }}" class="nav-link active">
                         <i class="fas fa-users"></i> Usuarios
                     </a>
                 </li>
@@ -48,7 +48,11 @@
                         <i class="fas fa-boxes"></i> Productos
                     </a>
                 </li>
-                
+                <li class="nav-item">
+                    <a href="{{ route('admin.estadisticas') }}" class="nav-link">
+                        <i class="fas fa-chart-bar"></i> Estadísticas
+                    </a>
+                </li>
             </ul>
         </div>
 

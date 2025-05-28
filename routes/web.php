@@ -1,12 +1,13 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\ProductoController;
-use App\Http\Controllers\OrdenController;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\VentaController;
+use App\Http\Controllers\CarritoController;
+use App\Http\Controllers\EstadisticaController;
 use App\Models\Producto;
 
 // Página principal
@@ -20,19 +21,48 @@ Route::middleware(['auth', 'verified'])->get('/dashboard', function () {
 
     return match ($user->role) {
         'administrador' => redirect()->route('admin.dashboard'),
-        'gerente' => redirect()->route('gerente.dashboard'),
-        'cliente' => redirect()->route('cliente.dashboard'),
-        default => redirect()->route('cliente.dashboard'),
+        'gerente'       => redirect()->route('gerente.dashboard'),
+        'cliente'       => $user->tipo_cliente === 'vendedor'
+                            ? redirect()->route('cliente.vendedor.dashboard')
+                            : redirect()->route('cliente.comprador.dashboard'),
+        default => redirect()->route('login')->with('error', 'Rol no autorizado.'),
     };
 })->name('dashboard');
 
-// Rutas de dashboards por rol
-Route::middleware(['auth'])->group(function () {
-    Route::get('/cliente', [ProductoController::class, 'clienteIndex'])->name('cliente.dashboard');
-    Route::get('/admin', [UserController::class, 'dashboard'])->name('admin.dashboard');
+// Dashboard administrador
+Route::middleware(['auth', 'verified'])->get('/admin', [UserController::class, 'adminDashboard'])->name('admin.dashboard');
+
+// Dashboard gerente
+Route::middleware(['auth', 'verified'])->get('/gerente/dashboard', [UserController::class, 'gerenteDashboard'])->name('gerente.dashboard');
+
+// Dashboard cliente comprador (usa ProductoController@index para buscador y filtro)
+Route::middleware(['auth', 'verified'])->get('/cliente/comprador', [ProductoController::class, 'index'])->name('cliente.comprador.dashboard');
+
+// Dashboard cliente vendedor
+Route::middleware(['auth', 'verified'])->get('/cliente/vendedor', function () {
+    $productos = Auth::user()->productos;
+    return view('cliente_vendedor', compact('productos'));
+})->name('cliente.vendedor.dashboard');
+
+// Rutas de estadísticas (solo administrador)
+Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/estadisticas', [EstadisticaController::class, 'index'])->name('estadisticas');
 });
 
-Route::middleware(['auth', 'verified'])->get('/gerente/dashboard', [UserController::class, 'dashboard'])->name('gerente.dashboard');
+// Rutas del carrito
+Route::prefix('carrito')->middleware(['auth', 'verified'])->name('carrito.')->group(function () {
+    Route::get('/', [CarritoController::class, 'index'])->name('index');
+    Route::post('/agregar/{id}', [CarritoController::class, 'agregar'])->name('agregar');
+    Route::delete('/eliminar/{id}', [CarritoController::class, 'eliminar'])->name('eliminar');
+    Route::post('/vaciar', [CarritoController::class, 'vaciar'])->name('vaciar');
+    Route::post('/finalizar', [CarritoController::class, 'finalizarCompra'])->name('finalizar');
+    Route::post('/carrito/agregar/{id}', [CarritoController::class, 'agregar'])->name('carrito.agregar');
+
+});
+Route::get('/debug/limpiar-carrito', function () {
+    session()->forget('carrito');
+    return 'Carrito limpio correctamente';
+});
 
 // Rutas de gestión de categorías (gerente)
 Route::middleware(['auth', 'verified'])->prefix('gerente/categorias')->name('gerente.categorias.')->group(function () {
@@ -48,7 +78,7 @@ Route::middleware(['auth', 'verified'])->prefix('gerente/productos')->name('gere
     Route::put('/{producto}', [ProductoController::class, 'update'])->name('update');
 });
 
-// Rutas de gestión de usuarios para administrador
+// Rutas de gestión de usuarios (administrador)
 Route::middleware(['auth', 'verified'])->prefix('admin/usuarios')->name('admin.usuarios.')->group(function () {
     Route::get('/', [UserController::class, 'index'])->name('index');
     Route::get('/create', [UserController::class, 'create'])->name('create');
@@ -58,7 +88,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin/usuarios')->name('admin.u
     Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
 });
 
-// Rutas de gestión de categorías para administrador
+// Rutas de gestión de categorías (administrador)
 Route::middleware(['auth', 'verified'])->prefix('admin/categorias')->name('admin.categorias.')->group(function () {
     Route::get('/', [CategoriaController::class, 'index'])->name('index');
     Route::get('/create', [CategoriaController::class, 'create'])->name('create');
@@ -68,7 +98,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin/categorias')->name('admin
     Route::delete('/{categoria}', [CategoriaController::class, 'destroy'])->name('destroy');
 });
 
-// Rutas de gestión de productos para administrador
+// Rutas de gestión de productos (administrador)
 Route::middleware(['auth', 'verified'])->prefix('admin/productos')->name('admin.productos.')->group(function () {
     Route::get('/', [ProductoController::class, 'index'])->name('index');
     Route::get('/create', [ProductoController::class, 'create'])->name('create');
@@ -78,24 +108,34 @@ Route::middleware(['auth', 'verified'])->prefix('admin/productos')->name('admin.
     Route::delete('/{producto}', [ProductoController::class, 'destroy'])->name('destroy');
 });
 
-// Rutas para cliente
-Route::middleware(['auth', 'verified'])->prefix('cliente')->name('cliente.')->group(function () {
-    Route::get('/dashboard', [ProductoController::class, 'clienteIndex'])->name('dashboard');
-
-    // Órdenes del cliente
-    Route::prefix('ordenes')->name('ordenes.')->group(function () {
-        Route::get('/', [OrdenController::class, 'index'])->name('index'); // Mostrar todas las órdenes
-        Route::post('/store', [OrdenController::class, 'store'])->name('store'); // Crear nueva orden
-        Route::get('/{orden}', [OrdenController::class, 'show'])->name('show'); // Ver detalle de una orden
-        Route::get('/cliente/ordenes/{orden}', [OrdenController::class, 'show'])->name('cliente.ordenes.show');
-
-    });
-});
-
-// Rutas CRUD de productos
+// Rutas CRUD de productos generales (opcional)
 Route::middleware('auth')->group(function () {
     Route::resource('productos', ProductoController::class);
 });
 
+Route::middleware(['auth', 'verified'])->prefix('gerente/usuarios')->name('gerente.usuarios.')->group(function () {
+    Route::get('/{user}/edit', [UserController::class, 'editCliente'])->name('edit');
+    Route::put('/{user}', [UserController::class, 'updateCliente'])->name('update');
+});
+
+// Rutas de ventas
+Route::middleware(['auth', 'verified'])->prefix('ventas')->name('ventas.')->group(function () {
+    Route::get('/{venta}', [VentaController::class, 'show'])->name('show');
+    Route::post('/{venta}/validar', [VentaController::class, 'validar'])->name('validar');
+    Route::get('/{venta}/ticket', [VentaController::class, 'descargarTicket'])->name('descargar');
+});
+
+// Rutas de productos para cliente vendedor
+Route::middleware(['auth', 'verified'])->prefix('vendedor/productos')->name('vendedor.productos.')->group(function () {
+    Route::get('/', [ProductoController::class, 'index'])->name('index');
+    Route::get('/create', [ProductoController::class, 'create'])->name('create');
+    Route::post('/', [ProductoController::class, 'store'])->name('store');
+    Route::get('/{producto}/edit', [ProductoController::class, 'edit'])->name('edit');
+    Route::put('/{producto}', [ProductoController::class, 'update'])->name('update');
+    Route::delete('/{producto}', [ProductoController::class, 'destroy'])->name('destroy');
+});
+
+Route::middleware(['auth', 'verified'])->get('/gerente/ventas', [VentaController::class, 'index'])->name('ventas.index');
+
 // Rutas de autenticación
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
