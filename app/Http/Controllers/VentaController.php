@@ -2,68 +2,89 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Venta;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use App\Http\Requests\StoreVentaRequest;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use App\Models\User;
+use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserRequest;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
-
-class VentaController extends Controller
+class UserController extends Controller
 {
+    use AuthorizesRequests;
+
+    
+    public function adminDashboard()
+    {
+        $users = User::all();
+        return view('administrador', compact('users'));
+    }
+
+    public function gerenteDashboard()
+    {
+        $users = User::whereNotIn('role', ['administrador', 'gerente'])->get();
+        return view('gerente', compact('users'));
+    }
+
     public function index()
     {
-        $ventas = Venta::all();
-        return view('ventas.index', compact('ventas'));
+        $this->authorize('viewAny', User::class);
+
+        $users = User::all();
+        return view('administrador', compact('users'));
     }
 
     public function create()
     {
-        return view('ventas.create');
+        $this->authorize('create', User::class);
+        return view('create');
     }
 
-    public function store(StoreVentaRequest $request)
-{
-    $ticketPath = $request->file('ticket')->store('tickets', 'private');
-
-    Venta::create([
-        'comprador_id' => auth()->id(),
-        'producto_id' => $request->producto_id,
-        'ticket' => $ticketPath,
-        'estado' => 'pendiente',
-    ]);
-
-    return redirect()->route('ventas.index')->with('success', 'Venta registrada correctamente.');
-}
-
-    public function show(string $id)
+    public function store(StoreUserRequest $request)
     {
-        $venta = Venta::findOrFail($id);
-        $this->authorize('view', $venta); // Solo gerente o vendedor dueño
+        $this->authorize('create', User::class);
 
-        return view('ventas.show', compact('venta'));
+        $validated = $request->validated();
+
+        User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'role' => $validated['role'],
+            'tipo_cliente' => $validated['role'] === 'cliente' ? $validated['tipo_cliente'] : null,
+        ]);
+
+        return redirect()->route('admin.usuarios.index')->with('success', 'Usuario creado con éxito.');
     }
 
-    public function edit(string $id) { }
-
-    public function update(Request $request, string $id) { }
-
-    public function destroy(string $id) { }
-
-    public function validar(Request $request, Venta $venta)
+    public function edit(User $user)
     {
-        $this->authorize('validar', $venta);
-        $venta->estado = 'validada';
-        $venta->save();
-
-        return redirect()->route('ventas.index')->with('success', 'Venta validada correctamente.');
+        $this->authorize('update', $user);
+        return view('edit', compact('user'));
     }
 
-    /**
-     * Descargar ticket privado.
-     */
-    public function descargarTicket(Venta $venta)
+    public function update(UpdateUserRequest $request, User $user)
     {
-        $this->authorize('view', $venta); // Solo gerente o vendedor dueño
-        return Storage::disk('private')->download($venta->ticket);
+        $this->authorize('update', $user);
+
+        $validated = $request->validated();
+
+        $user->update([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => $validated['password'] ? Hash::make($validated['password']) : $user->password,
+            'role' => $validated['role'],
+            'tipo_cliente' => $validated['role'] === 'cliente' ? $validated['tipo_cliente'] : null,
+        ]);
+
+        return redirect()->route('admin.usuarios.index')->with('success', 'Usuario actualizado con éxito.');
+    }
+
+    public function destroy(User $user)
+    {
+        $this->authorize('delete', $user);
+        $user->delete();
+
+        return redirect()->route('admin.usuarios.index')->with('success', 'Usuario eliminado con éxito.');
     }
 }

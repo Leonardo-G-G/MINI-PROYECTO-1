@@ -20,29 +20,31 @@ class RegisteredUserController extends Controller
     // Procesa el registro de un nuevo usuario
     public function store(Request $request)
     {
-        // Validación de datos
+        // Validación de datos, incluyendo tipo_cliente
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'tipo_cliente' => ['required', 'in:comprador,vendedor'],
         ], [
-            'password.confirmed' => 'Las contraseñas no coinciden, intentalo nuevamente',  // Mensaje personalizado
+            'password.confirmed' => 'Las contraseñas no coinciden, inténtalo nuevamente',
+            'tipo_cliente.required' => 'El tipo de cliente es obligatorio',
+            'tipo_cliente.in' => 'El tipo de cliente seleccionado no es válido',
         ]);
 
-        // Crear usuario
+        // Crear usuario con tipo_cliente y rol cliente
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'cliente', // Se asigna el rol por defecto
+            'role' => 'cliente',
+            'tipo_cliente' => $request->tipo_cliente,
         ]);
 
-        // Evento de usuario registrado
+        // Disparar evento de registro
         event(new Registered($user));
 
-    
-
-        // Redirigir a la página de registro con mensaje de éxito
+        // Redirigir con mensaje de éxito
         return redirect()->route('register')->with('success', 'Registro exitoso. ¡Bienvenido!');
     }
 }
