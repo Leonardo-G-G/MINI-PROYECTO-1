@@ -21,7 +21,6 @@ return new class extends Migration
             $table->integer('cantidad')->default(1);
             $table->string('foto')->nullable();
             $table->year('anio_publicacion')->nullable();
-            $table->foreignId('categoria_id')->constrained()->onDelete('cascade');
             $table->foreignId('vendedor_id')->constrained('users')->onDelete('cascade');
             $table->timestamps();
         });

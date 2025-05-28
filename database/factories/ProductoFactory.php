@@ -23,9 +23,7 @@ class ProductoFactory extends Factory
             'precio' => $this->faker->randomFloat(2, 50, 500),
             'cantidad' => $this->faker->numberBetween(1, 10),
             'anio_publicacion' => $this->faker->year,
-            'foto' => 'libros/' . $this->faker->image('public/storage/libros', 200, 300, null, false),
-            // Estos serán definidos en el seeder:
-            'categoria_id' => Categoria::inRandomOrder()->first()->id ?? 1,
+            'foto' => 'https://via.placeholder.com/200x300?text=Libro',
             'vendedor_id' => User::factory(),
         ];
     }

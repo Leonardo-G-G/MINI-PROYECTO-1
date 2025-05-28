@@ -14,9 +14,9 @@ class DatabaseSeeder extends Seeder
         // Ejecutar todos los seeders necesarios
         $this->call([
             UserSeeder::class,
-            
-            ProductoSeeder::class,
             CategoriaSeeder::class,
+            ProductoSeeder::class,
+            
         ]);
     }
 }
