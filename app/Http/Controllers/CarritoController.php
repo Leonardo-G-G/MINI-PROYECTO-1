@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Producto;
 use App\Models\Venta;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class CarritoController extends Controller
 {
@@ -15,22 +16,29 @@ class CarritoController extends Controller
         return view('carrito', compact('carrito'));
     }
 
-    public function agregar($id)
+    public function agregar($id, Request $request)
     {
         $producto = Producto::findOrFail($id);
+        $cantidadSolicitada = (int) $request->input('cantidad', 1);
 
         if ($producto->cantidad <= 0) {
             return back()->with('error', 'Este producto no está disponible actualmente.');
         }
 
+        if ($cantidadSolicitada < 1 || $cantidadSolicitada > $producto->cantidad) {
+            return back()->with('error', 'Cantidad inválida o supera el stock disponible.');
+        }
+
         $carrito = session()->get('carrito', []);
 
         if (isset($carrito[$id])) {
-            if ($carrito[$id]['cantidad'] < $producto->cantidad) {
-                $carrito[$id]['cantidad']++;
-            } else {
+            $nuevaCantidad = $carrito[$id]['cantidad'] + $cantidadSolicitada;
+
+            if ($nuevaCantidad > $producto->cantidad) {
                 return back()->with('error', 'No hay suficiente stock disponible.');
             }
+
+            $carrito[$id]['cantidad'] = $nuevaCantidad;
         } else {
             $carrito[$id] = [
                 'id' => $producto->id,
@@ -38,7 +46,7 @@ class CarritoController extends Controller
                 'precio' => $producto->precio,
                 'foto' => $producto->foto,
                 'autor' => $producto->autor,
-                'cantidad' => 1,
+                'cantidad' => $cantidadSolicitada,
             ];
         }
 
@@ -63,7 +71,7 @@ class CarritoController extends Controller
         return back()->with('success', 'Carrito vaciado correctamente.');
     }
 
-    public function finalizarCompra()
+    public function finalizarCompra(Request $request)
     {
         $carrito = session('carrito', []);
 
@@ -71,10 +79,22 @@ class CarritoController extends Controller
             return back()->with('error', 'El carrito está vacío.');
         }
 
+        $request->validate([
+            'ticket' => 'required|image|max:2048',
+        ]);
+
+        $ticketPath = $request->file('ticket')->store('tickets', 'private');
+
+        $total = 0;
+        foreach ($carrito as $item) {
+            $total += $item['precio'] * $item['cantidad'];
+        }
+
         $venta = Venta::create([
             'comprador_id' => Auth::id(),
+            'ticket' => $ticketPath,
             'estado' => 'pendiente',
-            'ticket' => 'ticket_placeholder.jpg',
+            'total' => $total,
         ]);
 
         foreach ($carrito as $item) {
@@ -92,6 +112,7 @@ class CarritoController extends Controller
         }
 
         session()->forget('carrito');
+
         return redirect()->route('cliente.comprador.dashboard')->with('success', 'Compra finalizada exitosamente.');
     }
 }

@@ -61,6 +61,7 @@ class UserController extends Controller
     {
         $this->authorize('update', $user);
         return view('edit', compact('user'));
+        
     }
 
     public function update(UpdateUserRequest $request, User $user)
@@ -79,6 +80,38 @@ class UserController extends Controller
 
         return redirect()->route('admin.usuarios.index')->with('success', 'Usuario actualizado con éxito.');
     }
+    // Vista de edición para GERENTE (solo puede editar clientes)
+        public function editCliente(User $user)
+        {
+            $this->authorize('update', $user);
+
+            if ($user->role !== 'cliente') {
+                abort(403, 'Solo puedes editar usuarios con rol cliente.');
+            }
+
+            return view('gerente_editUsers', compact('user'));
+        }
+
+        public function updateCliente(UpdateUserRequest $request, User $user)
+        {
+            $this->authorize('update', $user);
+
+            if ($user->role !== 'cliente') {
+                abort(403, 'Solo puedes actualizar usuarios con rol cliente.');
+            }
+
+            $validated = $request->validated();
+
+            $user->update([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => $validated['password'] ? Hash::make($validated['password']) : $user->password,
+                'tipo_cliente' => $validated['tipo_cliente'],
+            ]);
+
+            return redirect()->route('gerente.dashboard')->with('success', 'Cliente actualizado correctamente.');
+        }
+
 
     public function destroy(User $user)
     {
