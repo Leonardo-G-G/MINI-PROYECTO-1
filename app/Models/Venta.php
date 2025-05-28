@@ -11,25 +11,33 @@ class Venta extends Model
     use HasFactory;
 
     protected $fillable = [
-        'producto_id',
         'comprador_id',
         'ticket',
         'estado',
+        'total', // este campo sí está en tu migración
     ];
 
+    /**
+     * Relación: una venta pertenece a un comprador (usuario).
+     */
     public function comprador()
-{
-    return $this->belongsTo(User::class, 'comprador_id');
-}
+    {
+        return $this->belongsTo(User::class, 'comprador_id');
+    }
 
-public function productos()
-{
-    return $this->belongsToMany(Producto::class, 'producto_venta')
-                ->withPivot('cantidad', 'precio_unitario')
-                ->withTimestamps();
-}
+    /**
+     * Relación: una venta tiene muchos productos mediante la tabla pivote.
+     */
+    public function productos()
+    {
+        return $this->belongsToMany(Producto::class, 'producto_venta')
+                    ->withPivot('cantidad', 'precio_unitario')
+                    ->withTimestamps();
+    }
 
-
+    /**
+     * Accesor para obtener la URL del ticket (comprobante) almacenado en disco privado.
+     */
     public function getTicketUrlAttribute()
     {
         return Storage::disk('private')->url($this->ticket);
