@@ -63,6 +63,22 @@ class VentaController extends Controller
 
         return back()->with('error', 'El ticket no está disponible.');
     }
+    public function ventasDelVendedor()
+{
+    $user = auth()->user();
+
+    // Busca ventas en las que al menos uno de los productos fue creado por el vendedor
+    $ventas = Venta::with(['comprador', 'productos'])
+        ->get()
+        ->filter(function ($venta) use ($user) {
+            return $venta->productos->contains(function ($producto) use ($user) {
+                return $producto->vendedor_id === $user->id;
+            });
+        });
+
+    return view('vendedor_ventas', compact('ventas'));
+}
+
 
     // Métodos no implementados
     public function edit(string $id) {}

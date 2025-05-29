@@ -40,6 +40,11 @@
                         <i class="fas fa-plus-circle"></i> Agregar Producto
                     </a>
                 </li>
+                <li class="nav-item">
+                <a href="{{ route('vendedor.ventas') }}" class="nav-link text-white">
+                    <i class="fas fa-shopping-bag"></i> Mis Ventas
+                </a>
+            </li>
             </ul>
         </div>
 
@@ -60,7 +65,7 @@
                         <th>Nombre</th>
                         <th>Precio</th>
                         <th>Cantidad</th>
-                        <th>Categoría</th>
+                        <th>Categorías</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
@@ -84,7 +89,13 @@
                             <td>{{ $producto->nombre }}</td>
                             <td class="fw-bold text-success">${{ number_format($producto->precio, 2) }}</td>
                             <td class="fw-bold text-primary">{{ $producto->cantidad }}</td>
-                            <td>{{ $producto->categoria->nombre ?? 'Sin categoría' }}</td>
+                            <td>
+                                @if($producto->categorias && $producto->categorias->count())
+                                    {{ $producto->categorias->pluck('nombre')->join(', ') }}
+                                @else
+                                    <span class="text-muted">Sin categoría</span>
+                                @endif
+                            </td>
                             <td>{{ ucfirst($producto->estado) }}</td>
                             <td>
                                 <a href="{{ route('vendedor.productos.edit', $producto) }}" class="btn btn-sm btn-warning">
