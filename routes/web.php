@@ -135,6 +135,12 @@ Route::middleware(['auth', 'verified'])->prefix('vendedor/productos')->name('ven
     Route::delete('/{producto}', [ProductoController::class, 'destroy'])->name('destroy');
 });
 
+// ventas
+Route::get('/vendedor/ventas', [VentaController::class, 'ventasDelVendedor'])
+    ->name('vendedor.ventas')
+    ->middleware(['auth']);
+
+
 Route::middleware(['auth', 'verified'])->get('/gerente/ventas', [VentaController::class, 'index'])->name('ventas.index');
 
 // Rutas de autenticación

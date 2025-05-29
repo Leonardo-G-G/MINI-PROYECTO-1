@@ -13,20 +13,29 @@ class UserSeeder extends Seeder
     {
         // Crear usuario administrador
         User::create([
-            'name' => 'Admin Principal',
-            'email' => 'admin@ejemplo.com',
-            'password' => Hash::make('admin1234'),
+            'name' => 'admin',
+            'email' => 'admin@gmail.com',
+            'password' => Hash::make('nimda'),
             'role' => 'administrador',
             'tipo_cliente' => null,
         ]);
 
         // Crear usuario gerente
         User::create([
-            'name' => 'Gerente General',
-            'email' => 'gerente@ejemplo.com',
-            'password' => Hash::make('gerente1234'),
+            'name' => 'gerente',
+            'email' => 'gerente@gmail.com',
+            'password' => Hash::make('etnereg'),
             'role' => 'gerente',
             'tipo_cliente' => null,
+        ]);
+
+        // Crear usuario cliente
+        User::create([
+            'name' => 'cliente',
+            'email' => 'cliente@gmail.com',
+            'password' => Hash::make('etneilc'),
+            'role' => 'cliente',
+            'tipo_cliente' => 'comprador',
         ]);
 
         // Crear 70 compradores
