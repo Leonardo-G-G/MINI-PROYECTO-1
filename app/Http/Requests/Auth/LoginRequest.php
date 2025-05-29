@@ -12,7 +12,7 @@ use Illuminate\Validation\ValidationException;
 class LoginRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Determina si el usuario está autorizado para hacer esta solicitud.
      */
     public function authorize(): bool
     {
@@ -20,20 +20,18 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * Reglas de validación para el formulario de login.
      */
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'name' => ['required', 'string'],
             'password' => ['required', 'string'],
         ];
     }
 
     /**
-     * Attempt to authenticate the request's credentials.
+     * Intenta autenticar con las credenciales ingresadas.
      *
      * @throws \Illuminate\Validation\ValidationException
      */
@@ -41,12 +39,11 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        if (! Auth::attempt($this->only('name', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
-            // Mensaje de error personalizado si las credenciales no coinciden
             throw ValidationException::withMessages([
-                'email' => 'Las credenciales no coinciden con nuestros registros.',
+                'name' => 'Las credenciales no coinciden con nuestros registros.',
             ]);
         }
 
@@ -54,7 +51,7 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Ensure the login request is not rate limited.
+     * Verifica si la solicitud está limitada por número de intentos.
      *
      * @throws \Illuminate\Validation\ValidationException
      */
@@ -68,17 +65,16 @@ class LoginRequest extends FormRequest
 
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
-        // Mensaje de error personalizado para el límite de intentos
         throw ValidationException::withMessages([
-            'email' => 'Demasiados intentos. Por favor, inténtalo de nuevo en ' . $seconds . ' segundos.',
+            'name' => 'Demasiados intentos. Por favor, inténtalo de nuevo en ' . $seconds . ' segundos.',
         ]);
     }
 
     /**
-     * Get the rate limiting throttle key for the request.
+     * Genera la clave única para el control de intentos de login.
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
+        return Str::transliterate(Str::lower($this->input('name')) . '|' . $this->ip());
     }
 }

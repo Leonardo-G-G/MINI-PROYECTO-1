@@ -27,8 +27,8 @@
             @csrf
             
             <div class="input-group">
-                <i class="fa-solid fa-envelope"></i>
-                <input type="email" id="email" name="email" value="{{ old('email') }}" required placeholder="Correo electrónico">
+                <i class="fa-solid fa-user"></i>
+                <input type="text" id="name" name="name" value="{{ old('name') }}" required placeholder="Nombre de usuario">
             </div>
 
             <div class="input-group">
